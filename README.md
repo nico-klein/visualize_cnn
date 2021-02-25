@@ -1,4 +1,5 @@
-# visualize_cnn
+# visualize cnn
+test here https://neuralnetz.de
 
 ## html/javascript
 * uses the javascript tensorflow implementation from tf.min.js 
