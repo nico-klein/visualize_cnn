@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="de">
+<head>
+    <title>Visualisierung eines neuronalen Netzes mit ohne Convolution Layer(n) CNN</title>
+    <meta charset="utf-8">
+    <meta content="no-cache" http-equiv="pragma"/>
+
+    <!-- Import TensorFlow.js -->
+    <script src="./tf.min.js"></script>
+    <script src="./visualize.js"></script>
+
+
+    <!-- Wordpress: Diesen Teil (ohne style) in Themes -> custom CSS einfügen -->
+    <style>
+        body {
+            font-family: Verdana
+        }
+
+        div.main {
+            width: 940px;
+            clear: both;
+            /*padding: 40px 0 0 0;*/
+            margin: 0 auto
+        }
+
+        div.left, div.right {
+            width: 450px;
+            /*height: 450px;*/
+            padding-bottom: 20px;
+            float: left
+        }
+
+        div.wrapper {
+            margin-top: 20px;
+            padding: 0 20px;
+            margin: 0 auto
+        }
+
+
+        #canvasDrawnImage {
+            border: 1px solid black;
+            margin: 15px
+        }
+
+        #canvasNormalizedImage {
+            border: 0px solid black;
+            margin: 0px;
+        }
+
+        button {
+            font-family: Verdana;
+            border-radius: 5px;
+            color: black;
+            background: aqua;
+            border: 2px solid darkblue;
+            width: 145px;
+            height: 30px;
+            margin-left: 5px;
+            margin-right: 5px;
+        }
+
+        fieldset {
+            border: 0px;
+            align: left
+        }
+
+        .model_description {
+            border-radius: 5px;
+            width: 100%;
+            border: 1px aqua;
+            background: darkblue;
+        }
+
+        .model_description .headers {
+            background: beige;
+        }
+
+        .model_description .values {
+            background: white;
+        }
+
+        .model_description .header, .model_description .value {
+            margin: 2px;
+        }
+
+        .prediction {
+            height: 22px;
+            width: 0px;
+            background-color: blue;
+            border: none
+        }
+
+        .canvasConvolutionOutput {
+            width: 84px;
+            height:84px;
+            border: 1px solid black;
+            margin: 2px;
+        }
+    </style>
+</head>
+
+<body>
+<div class="wrapper">
+    <div class="main">
+        <h1>Visualisierung : neuronales Netzes mit/ohne CNN</h1>
+        <div class="left">
+            <h2>Eingabe</h2>
+            Hier mit der Maus eine Ziffer von 0..9 zeichnen
+            <br>
+            <canvas height="280" id="canvasDrawArea" width="280">Browser unterstützt kein HTML!</canvas>
+        </div>
+
+        <div class="right">
+            <h2>Ergebnis</h2>
+            längster Balken -> erkannte Ziffer. Eingang =
+            <canvas height="28" id="canvasNormalizedInput" width="28"></canvas>
+            <br>
+            <table border="0">
+                <!--<thead>
+                <tr>
+                    <th id="output_header"></th>
+                    <th align="left" id="prediction_header"></th>
+                </tr>
+                </thead>
+                -->
+                <tbody>
+                <tr>
+                    <td id="output_0"></td>
+                    <td>
+                        <div class="prediction" id="prediction_0"></div>
+                    </td>
+                </tr>
+                <tr>
+                    <td id="output_1"></td>
+                    <td>
+                        <div class="prediction" id="prediction_1"></div>
+                    </td>
+                </tr>
+                <tr>
+                    <td id="output_2"></td>
+                    <td>
+                        <div class="prediction" id="prediction_2"></div>
+                    </td>
+                </tr>
+                <tr>
+                    <td id="output_3"></td>
+                    <td>
+                        <div class="prediction" id="prediction_3"></div>
+                    </td>
+                </tr>
+                <tr>
+                    <td id="output_4"></td>
+                    <td>
+                        <div class="prediction" id="prediction_4"></div>
+                    </td>
+                </tr>
+                <tr>
+                    <td id="output_5"></td>
+                    <td>
+                        <div class="prediction" id="prediction_5"></div>
+                    </td>
+                </tr>
+                <tr>
+                    <td id="output_6"></td>
+                    <td>
+                        <div class="prediction" id="prediction_6"></div>
+                    </td>
+                </tr>
+                <tr>
+                    <td id="output_7"></td>
+                    <td>
+                        <div class="prediction" id="prediction_7"></div>
+                    </td>
+                </tr>
+                <tr>
+                    <td id="output_8"></td>
+                    <td>
+                        <div class="prediction" id="prediction_8"></div>
+                    </td>
+                </tr>
+                <tr>
+                    <td id="output_9"></td>
+                    <td>
+                        <div class="prediction" id="prediction_9"></div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+
+    <div class="main">
+        <div class="left">
+            <button onclick="ButtonStartHandler()" width="100">Start Erkennung</button>
+            <button onclick="ButtonResetHandler()" width="100">Bild löschen</button>
+        </div>
+        <div class="right">
+            Netz wählen (Anzahl Convolution-Filter-Schichten):
+            <fieldset>
+                <input type="radio" id="model_cnn" name="model">2
+                <input type="radio" id="model_small_cnn" name="model">1
+                <input type="radio" id="model_simple" name="model">0
+            </fieldset>
+        </div>
+    </div>
+
+    <div class="main" id ="hiddenOutput">
+        <!-- to be filled dyn. by js-->
+
+    </div>
+    <div class="main">
+        <h2>Aufbau des Netzes</h2>
+        Das neuronale Netz hat 784 Eingänge (28x28 Pixel) und 10 Ausgänge (Wahrscheinlichkeit der Ziffern 0..9).<br>
+        Das Training erfolgte mit 60.000 Bildern aus der Mnist Datenbank (handgeschriebene Ziffern).<br>
+        Die Erkennung schwankt je nach dem wo und wie gross die Ziffern geschrieben werden und welches Modell verwendet wird.<br><br>
+        <table class="model_description">
+            <thead class="headers" id="model_description_thead">
+            <!-- to be filled dyn. by js-->
+            </thead>
+            <tbody id="model_description_tbody">
+            <!-- to be filled dyn. by js-->
+            </tbody>
+        </table>
+        <br><br>
+        <a href="https://micoro.de/impressum/" style="alignment: right">Impressum/Haftungsausschluß</a>
+    </div>
+</div>
+</body>
+</html>
